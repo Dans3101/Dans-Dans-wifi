@@ -1,1 +1,16 @@
-1
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WiFi Login</title>
+</head>
+<body>
+    <h2>Welcome to PayWiFi</h2>
+    <p>Please enter your number to buy internet access:</p>
+
+    <form action="/api/pay" method="POST">
+        <input type="text" name="phone" placeholder="07XXXXXXXX" required>
+        <input type="hidden" name="plan" value="1_hour">
+        <button type="submit">Buy 1 Hour</button>
+    </form>
+</body>
+</html>
