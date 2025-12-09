@@ -13,8 +13,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
-    res.send("💜Dans WiFi API is running...💜
- This message confirms that the backend services for DansDans WiFi Systems are active and operational. Hosted on Render, this API powers essential functions such as client management, signal monitoring, and automated service tracking. It serves as the heartbeat of our digital infrastructure, ensuring reliable connectivity and seamless integration across platforms.🤝🤝");
+    res.send("Dans WiFi API is running...This message confirms that the backend services for DansDans WiFi Systems are active and operational. Hosted on Render, this API powers essential functions such as client management, signal monitoring, and automated service tracking. It serves as the heartbeat of our digital infrastructure, ensuring reliable connectivity and seamless integration across platforms.");
 });
 
 // Start M-Pesa payment
