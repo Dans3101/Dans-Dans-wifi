@@ -16,6 +16,16 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // =============================
+// SERVE PUBLIC LOGIN PAGE
+// =============================
+app.use(express.static("public"));
+
+// =============================
+// WIFI ROUTES (voucher validation)
+// =============================
+app.use("/wifi", require("./src/wifiRoute"));
+
+// =============================
 // HOME ROUTE
 // =============================
 app.get("/", (req, res) => {
@@ -60,7 +70,6 @@ app.post("/pay", async (req, res) => {
         // 3. Submit order
         const result = await submitPesapalOrder(token, order);
 
-        // Pesapal returns redirect_url for user to complete payment
         return res.json({
             status: "PENDING",
             redirect_url: result.redirect_url,
@@ -81,21 +90,20 @@ app.post("/pesapal/callback", async (req, res) => {
 
     console.log("PESAPAL CALLBACK RECEIVED:", data);
 
-    const status = data.payment_status; // COMPLETED / FAILED
+    const status = data.payment_status;
     const phone = data.billing_phone;
     const amount = data.amount;
     const receipt = data.confirmation_code || null;
 
-    // Save to DB
+    // Save payment
     db.run(
         "INSERT INTO payments(phone, amount, mpesa_receipt, status) VALUES (?, ?, ?, ?)",
         [phone, amount, receipt, status]
     );
 
-    // Generate voucher if successful
     if (status === "COMPLETED") {
         const voucher = generateVoucher();
-        console.log("Voucher generated:", voucher);
+        console.log("Voucher:", voucher);
         return res.status(200).json({ message: "Payment successful", voucher });
     }
 
