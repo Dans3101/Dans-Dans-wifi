@@ -1,16 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WiFi Login</title>
+    <title>Dans WiFi Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: Arial; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: #f2f2f2; 
+        }
+        .box { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            width: 90%; 
+            max-width: 350px; 
+            text-align: center; 
+        }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 10px; 
+            border-radius: 8px; 
+            border: 1px solid #ccc; 
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            background: #1976D2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome to PayWiFi</h2>
-    <p>Please enter your number to buy internet access:</p>
+    <div class="box">
+        <h3>Enter Voucher</h3>
+        <input id="voucher" placeholder="Enter code">
+        <button onclick="login()">Connect</button>
 
-    <form action="/api/pay" method="POST">
-        <input type="text" name="phone" placeholder="07XXXXXXXX" required>
-        <input type="hidden" name="plan" value="1_hour">
-        <button type="submit">Buy 1 Hour</button>
-    </form>
+        <p id="result"></p>
+    </div>
+
+<script>
+async function login() {
+    const voucher = document.getElementById('voucher').value;
+
+    let res = await fetch("/wifi/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voucher })
+    });
+
+    let data = await res.json();
+
+    document.getElementById("result").innerText = data.message;
+
+    if (data.status === "OK") {
+        setTimeout(() => {
+            window.location.href = data.redirect; 
+        }, 2000);
+    }
+}
+</script>
+
 </body>
 </html>
