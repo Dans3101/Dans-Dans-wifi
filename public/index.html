@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dans WiFi Hotspot</title>
+    <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Dans WiFi Hotspot</h1>
+        <p>Fast • Secure • Affordable</p>
+    </div>
+
+    <div class="card">
+        <h2>Choose Your Package</h2>
+
+        <select id="package">
+            <option value="20">20 KES - 30 minutes</option>
+            <option value="30">30 KES - 1 hour</option>
+            <option value="50">50 KES - 2 hours</option>
+            <option value="100">100 KES - 5 hours</option>
+        </select>
+
+        <input type="tel" id="phone" placeholder="Enter Phone Number" />
+
+        <button onclick="startPayment()">Proceed to Pay</button>
+
+        <p class="note">Payments processed securely with Pesapal</p>
+    </div>
+
+    <div id="loading" class="hidden">Redirecting to Payment…</div>
+
+</div>
+
+<script src="login.js"></script>
+
+</body>
+</html>
