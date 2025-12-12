@@ -1,5 +1,5 @@
 // =============================
-// Dans WiFi API – Pesapal Version
+// Dans WiFi API – Pesapal Version (With Time Control)
 // =============================
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -8,6 +8,8 @@ const dotenv = require("dotenv");
 const db = require("./src/utils");
 const { generateVoucher } = require("./src/wifi");
 const { getPesapalToken, submitPesapalOrder } = require("./src/pesapal");
+const { activateWiFi, checkExpiredAccess, markExpired } = require("./src/wifiAccess");
+const { blockDeviceOnRouter } = require("./src/router");
 
 dotenv.config();
 
@@ -29,7 +31,7 @@ app.use("/wifi", require("./src/wifiRoute"));
 // HOME ROUTE
 // =============================
 app.get("/", (req, res) => {
-    res.send("Dans WiFi API is running... Pesapal version active.");
+    res.send("Dans WiFi API is running... Pesapal version active with WiFi time control.");
 });
 
 // =============================
@@ -45,13 +47,13 @@ app.post("/pay", async (req, res) => {
     }
 
     try {
-        // 1. Get Pesapal Token
+        // Get Pesapal Token
         const token = await getPesapalToken(
             process.env.PESAPAL_CONSUMER_KEY,
             process.env.PESAPAL_CONSUMER_SECRET
         );
 
-        // 2. Prepare order details
+        // Order details
         const order = {
             id: `wifi-${Date.now()}`,
             currency: "KES",
@@ -67,7 +69,7 @@ app.post("/pay", async (req, res) => {
             }
         };
 
-        // 3. Submit order
+        // Submit order to Pesapal
         const result = await submitPesapalOrder(token, order);
 
         return res.json({
@@ -83,7 +85,7 @@ app.post("/pay", async (req, res) => {
 });
 
 // =============================
-// PESAPAL CALLBACK
+// PESAPAL CALLBACK – Activate WiFi Time
 // =============================
 app.post("/pesapal/callback", async (req, res) => {
     const data = req.body;
@@ -94,6 +96,7 @@ app.post("/pesapal/callback", async (req, res) => {
     const phone = data.billing_phone;
     const amount = data.amount;
     const receipt = data.confirmation_code || null;
+    const mac = data.mac_address || ""; // Optional if router sends it
 
     // Save payment
     db.run(
@@ -102,13 +105,42 @@ app.post("/pesapal/callback", async (req, res) => {
     );
 
     if (status === "COMPLETED") {
+
+        // Generate voucher
         const voucher = generateVoucher();
-        console.log("Voucher:", voucher);
-        return res.status(200).json({ message: "Payment successful", voucher });
+
+        // Assign WiFi time (default 60 minutes)
+        const minutes = 60;  
+        activateWiFi(phone, voucher, mac, minutes);
+
+        console.log("Voucher issued:", voucher);
+
+        return res.status(200).json({
+            message: "Payment successful",
+            voucher,
+            minutes
+        });
     }
 
     return res.status(200).json({ message: "Payment failed" });
 });
+
+// =============================
+// AUTO CHECK FOR EXPIRED USERS
+// =============================
+setInterval(() => {
+    checkExpiredAccess(rows => {
+        rows.forEach(user => {
+            console.log("WiFi time expired for:", user.phone);
+
+            // Auto-block or disconnect from router
+            blockDeviceOnRouter(user.mac_address);
+
+            // Update status
+            markExpired(user.id);
+        });
+    });
+}, 15000); // every 15 seconds
 
 // =============================
 // START SERVER
